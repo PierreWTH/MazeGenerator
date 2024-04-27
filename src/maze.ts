@@ -1,6 +1,6 @@
 // Define Canva and context
 let maze = document.getElementById("maze") as HTMLCanvasElement;
-let ctx = maze.getContext("2d");
+let ctx = maze.getContext("2d")!;
 
 // Current cell visited on the grid
 let current: Cell;
@@ -62,6 +62,82 @@ class Cell {
       bottomWall: true,
       leftWall: true,
     };
+  }
+
+  drawTopWall(
+    y: number,
+    x: number,
+    size: number,
+    columns: number,
+    rows: number
+  ) {
+    //Start drawing
+    ctx.beginPath();
+    // Move the position
+    ctx.moveTo(x, y);
+    //Draw a line from top left to top right
+    ctx.lineTo(x + size / columns, y);
+    ctx.stroke();
+  }
+
+  drawRightWall(
+    y: number,
+    x: number,
+    size: number,
+    columns: number,
+    rows: number
+  ) {
+    ctx.beginPath();
+    ctx.moveTo(x + size / columns, y);
+    // Draw from top right to bottom right
+    ctx.lineTo(x + size / columns, y + size / rows);
+    ctx.stroke();
+  }
+
+  drawBottomWall(
+    y: number,
+    x: number,
+    size: number,
+    columns: number,
+    rows: number
+  ) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + size / rows);
+    ctx.lineTo(x + size / columns, y + size / rows);
+    ctx.stroke();
+  }
+
+  drawLeftWall(
+    y: number,
+    x: number,
+    size: number,
+    columns: number,
+    rows: number
+  ) {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, y + size / rows);
+    ctx.stroke();
+  }
+
+  // Draw cells to the canva
+  show(size: number, rows: number, columns: number) {
+    let x = (this.colNum * size) / columns;
+    let y = (this.rowNum * size) / rows;
+
+    ctx.strokeStyle = "white";
+    // Color of cells
+    ctx.fillStyle = "black";
+    ctx.lineWidth = 2;
+
+    if (this.walls.topWall) this.drawTopWall(x, y, size, columns, rows);
+    if (this.walls.rightWall) this.drawRightWall(x, y, size, columns, rows);
+    if (this.walls.bottomWall) this.drawBottomWall(x, y, size, columns, rows);
+    if (this.walls.leftWall) this.drawLeftWall(x, y, size, columns, rows);
+
+    if (this.visited) {
+      ctx.fillRect(x + 1, y + 1, size / columns - 2, size / rows - 2);
+    }
   }
 }
 
