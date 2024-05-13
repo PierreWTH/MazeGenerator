@@ -37,11 +37,25 @@ class Maze {
     // Current cell is the first cell : the top at the left
     current = this.grid[0][0];
   }
+
+  draw() {
+    maze.width = this.size;
+    maze.height = this.size;
+    maze.style.background = "black";
+    current.visited = true;
+
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.columns; c++) {
+        let grid = this.grid;
+        grid[r][c].show(this.size, this.rows, this.columns);
+      }
+    }
+  }
 }
 
 class Cell {
   // Determine if algorithm has reached the case
-  private visited: Boolean;
+  public visited: Boolean;
   // The walls of each cell
   private walls: WallProps;
   constructor(
@@ -51,7 +65,7 @@ class Cell {
     public parentSize: Number
   ) {
     this.rowNum = rowNum;
-    this.colNum = rowNum;
+    this.colNum = colNum;
     this.parentGrid = parentGrid;
     this.parentSize = parentSize;
     this.visited = false;
@@ -62,6 +76,15 @@ class Cell {
       bottomWall: true,
       leftWall: true,
     };
+  }
+
+  checkNeighbours() {
+    let grid = this.parentGrid;
+    let row = this.rowNum;
+    let col = this.colNum;
+    let neighbours: [] = [];
+
+    let top = row !== 0 ? grid[row - 1][col] : undefined;
   }
 
   drawTopWall(
@@ -125,9 +148,9 @@ class Cell {
     let x = (this.colNum * size) / columns;
     let y = (this.rowNum * size) / rows;
 
-    ctx.strokeStyle = "white";
+    ctx.strokeStyle = "#ffffff";
     // Color of cells
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "red";
     ctx.lineWidth = 2;
 
     if (this.walls.topWall) this.drawTopWall(x, y, size, columns, rows);
@@ -143,3 +166,4 @@ class Cell {
 
 let newMaze = new Maze(500, 10, 10);
 newMaze.setup();
+newMaze.draw();
