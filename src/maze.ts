@@ -1,3 +1,5 @@
+import { WallProps } from "./types";
+
 // Define Canva and context
 let maze = document.getElementById("maze") as HTMLCanvasElement;
 let ctx = maze.getContext("2d")!;
@@ -50,6 +52,21 @@ class Maze {
         grid[r][c].show(this.size, this.rows, this.columns);
       }
     }
+
+    // Return a random neighbor
+    let next = current.checkNeighbours();
+
+    if (next) {
+      next.visited = true;
+      this.stack.push(current);
+      current.highlight(this.columns);
+      current.removeWall(current, next);
+      current = next;
+    } else if (this.stack.length > 0) {
+      let cell = this.stack.pop();
+      current = cell;
+      current.highlight(this.columns);
+    }
   }
 }
 
@@ -62,7 +79,7 @@ class Cell {
     public rowNum: number,
     public colNum: number,
     public parentGrid: Cell[][],
-    public parentSize: Number
+    public parentSize: number
   ) {
     this.rowNum = rowNum;
     this.colNum = colNum;
@@ -78,13 +95,31 @@ class Cell {
     };
   }
 
+  // Check all neighbours and non visited cells
   checkNeighbours() {
     let grid = this.parentGrid;
     let row = this.rowNum;
     let col = this.colNum;
-    let neighbours: [] = [];
+    let neighbours: Cell[] = [];
 
+    // get cell if its not at the side of the labyrinth
     let top = row !== 0 ? grid[row - 1][col] : undefined;
+    let right = col !== grid.length - 1 ? grid[row][col + 1] : undefined;
+    let bottom = row !== grid.length - 1 ? grid[row + 1][col] : undefined;
+    let left = col !== 0 ? grid[row][col - 1] : undefined;
+
+    //If cell exist and hasnt been visited push it to neighbours array
+    if (top && !top.visited) neighbours.push(top);
+    if (right && !right.visited) neighbours.push(right);
+    if (bottom && !bottom.visited) neighbours.push(bottom);
+    if (left && !left.visited) neighbours.push(left);
+
+    if (neighbours.length !== 0) {
+      let random = Math.floor(Math.random() * neighbours.length);
+      return neighbours[random];
+    } else {
+      return undefined;
+    }
   }
 
   drawTopWall(
@@ -141,6 +176,41 @@ class Cell {
     ctx.moveTo(x, y);
     ctx.lineTo(x, y + size / rows);
     ctx.stroke();
+  }
+
+  highlight(columns: number) {
+    let x = (this.colNum * this.parentSize) / columns + 1;
+    let y = (this.rowNum * this.parentGrid) / row + 1;
+
+    ctx.fillStyle = "green";
+    ctx.fillRect(
+      x,
+      y,
+      this.parentSize / columns - 3,
+      this.parentSize / columns - 3
+    );
+  }
+
+  removeWall(cell1: Cell, cell2: Cell) {
+    let x = cell1.colNum - cell2.colNum;
+
+    if (x == 1) {
+      cell1.walls.leftWall = false;
+      cell2.walls.rightWall = false;
+    } else if (x == -1) {
+      cell1.walls.rightWall = false;
+      cell2.walls.leftWall = false;
+    }
+
+    let y = cell1.rowNum - cell2.rowNum;
+
+    if (y == 1) {
+      cell1.walls.topWall = false;
+      cell2.walls.bottomWall = false;
+    } else if (y == -1) {
+      cell1.walls.bottomWall = false;
+      cell2.walls.topWall = false;
+    }
   }
 
   // Draw cells to the canva
