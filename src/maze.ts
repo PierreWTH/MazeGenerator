@@ -3,12 +3,11 @@ import { WallProps } from "./types";
 // Define Canva and context
 let maze = document.getElementById("maze") as HTMLCanvasElement;
 let ctx = maze.getContext("2d")!;
-
 // Current cell visited on the grid
 let current: Cell;
 
 class Maze {
-  private grid: Cell[][];
+  public grid: Cell[][];
   // Each element of the stack represent a cell of the maze
   private stack: Cell[];
 
@@ -42,10 +41,9 @@ class Maze {
 
   draw() {
     maze.width = this.size;
+    maze.width = this.size;
     maze.height = this.size;
     maze.style.background = "black";
-    current.visited = true;
-
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.columns; c++) {
         let grid = this.grid;
@@ -64,9 +62,17 @@ class Maze {
       current = next;
     } else if (this.stack.length > 0) {
       let cell = this.stack.pop();
-      current = cell;
+      if (cell) current = cell;
       current.highlight(this.columns);
     }
+
+    if (this.stack.length == 0) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      this.draw();
+    });
   }
 }
 
@@ -75,6 +81,9 @@ class Cell {
   public visited: Boolean;
   // The walls of each cell
   private walls: WallProps;
+  public isStart: boolean = false;
+  public isEnd: boolean = false;
+
   constructor(
     public rowNum: number,
     public colNum: number,
@@ -123,8 +132,8 @@ class Cell {
   }
 
   drawTopWall(
-    y: number,
     x: number,
+    y: number,
     size: number,
     columns: number,
     rows: number
@@ -139,8 +148,8 @@ class Cell {
   }
 
   drawRightWall(
-    y: number,
     x: number,
+    y: number,
     size: number,
     columns: number,
     rows: number
@@ -153,8 +162,8 @@ class Cell {
   }
 
   drawBottomWall(
-    y: number,
     x: number,
+    y: number,
     size: number,
     columns: number,
     rows: number
@@ -166,8 +175,8 @@ class Cell {
   }
 
   drawLeftWall(
-    y: number,
     x: number,
+    y: number,
     size: number,
     columns: number,
     rows: number
@@ -180,7 +189,7 @@ class Cell {
 
   highlight(columns: number) {
     let x = (this.colNum * this.parentSize) / columns + 1;
-    let y = (this.rowNum * this.parentGrid) / row + 1;
+    let y = (this.rowNum * this.parentSize) / columns + 1;
 
     ctx.fillStyle = "green";
     ctx.fillRect(
@@ -220,13 +229,22 @@ class Cell {
 
     ctx.strokeStyle = "#ffffff";
     // Color of cells
-    ctx.fillStyle = "red";
+    ctx.fillStyle = "black";
     ctx.lineWidth = 2;
 
     if (this.walls.topWall) this.drawTopWall(x, y, size, columns, rows);
     if (this.walls.rightWall) this.drawRightWall(x, y, size, columns, rows);
     if (this.walls.bottomWall) this.drawBottomWall(x, y, size, columns, rows);
     if (this.walls.leftWall) this.drawLeftWall(x, y, size, columns, rows);
+
+    if (this.isStart) {
+      ctx.fillStyle = "green"; // Couleur pour le début
+      ctx.fillRect(x + 1, y + 1, size / columns - 2, size / rows - 2);
+    }
+    if (this.isEnd) {
+      ctx.fillStyle = "red"; // Couleur pour la fin
+      ctx.fillRect(x + 1, y + 1, size / columns - 2, size / rows - 2);
+    }
 
     if (this.visited) {
       ctx.fillRect(x + 1, y + 1, size / columns - 2, size / rows - 2);
@@ -236,4 +254,8 @@ class Cell {
 
 let newMaze = new Maze(500, 10, 10);
 newMaze.setup();
+
+newMaze.grid[0][0].isStart = true; // Première cellule comme début
+newMaze.grid[newMaze.rows - 1][newMaze.columns - 1].isEnd = true; // Dernière cellule comme fin
+
 newMaze.draw();
